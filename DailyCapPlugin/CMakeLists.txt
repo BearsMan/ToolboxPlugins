@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin/")
 
-add_compile_options(/MP /permissive-)
+add_compile_options(/MP /permissive- $<$<NOT:$<CONFIG:Debug>>:/MT>)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(gwtoolboxpp)
 
@@ -23,7 +23,7 @@ target_include_directories(DailyCapPlugin PRIVATE
         ${gwtoolboxpp_SOURCE_DIR}/GWToolboxdll)
 target_link_libraries(DailyCapPlugin PRIVATE plugin_base gwca)
 target_link_options(DailyCapPlugin PRIVATE
-        "$<$<CONFIG:DEBUG>:/NODEFAULTLIB:LIBCMT>"
+        "$<$<CONFIG:Debug>:/NODEFAULTLIB:LIBCMT>"
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_FILES})
