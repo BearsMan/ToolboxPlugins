@@ -14,7 +14,6 @@ private:
     int current_value;
     int day_start_value;
     uint64_t last_updated;
-    bool updated_since_launch = false;
     bool resets_on_day_rollover = false;
 
     bool display = true;

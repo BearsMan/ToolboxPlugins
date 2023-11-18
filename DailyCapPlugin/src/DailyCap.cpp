@@ -27,7 +27,7 @@ DailyCap::DailyCap(const char *name, int max, bool reset)
 }
 
 void DailyCap::HandleDailyReset(uint64_t timestamp) {
-    if (!(this->updated_since_launch && getResetDay(timestamp) > getResetDay(this->last_updated))) {
+    if (getResetDay(timestamp) <= getResetDay(this->last_updated)) {
         return;
     }
 
@@ -59,7 +59,6 @@ void DailyCap::AddValue(int modifier) {
 
     this->current_value += modifier;
     this->last_updated = timestamp;
-    this->updated_since_launch = true;
 }
 
 void DailyCap::SetValue(int newValue) {
@@ -68,7 +67,6 @@ void DailyCap::SetValue(int newValue) {
 
     this->current_value = newValue;
     this->last_updated = timestamp;
-    this->updated_since_launch = true;
 }
 
 void DailyCap::LoadProgress(const CSimpleIniA& ini, const char *account, int defaultStartValue) {
