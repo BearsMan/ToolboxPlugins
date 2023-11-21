@@ -12,8 +12,6 @@
 import PluginUtils;
 
 namespace {
-    const char* INI_SECTION = "daily_cap";
-
     std::string getAccountEmail() {
         auto context = GW::GetCharContext();
         if(!context) {
@@ -128,7 +126,7 @@ void DailyCapPlugin::DrawSettings() {
 void DailyCapPlugin::LoadSettings(const wchar_t* folder) {
     ToolboxUIPlugin::LoadSettings(folder);
     for(auto& cap : tracked_caps) {
-        cap->LoadSettings(ini, INI_SECTION);
+        cap->LoadSettings(ini, this->Name());
     }
 
     std::string account_email = getAccountEmail();
@@ -154,7 +152,7 @@ void DailyCapPlugin::SaveSettings(const wchar_t* folder) {
     std::string account_email = getAccountEmail();
 
     for(const auto& cap : tracked_caps) {
-        cap->SaveSettings(ini, INI_SECTION);
+        cap->SaveSettings(ini, this->Name());
         cap->SaveProgress(ini, account_email.c_str());
     }
 
