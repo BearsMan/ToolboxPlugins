@@ -14,7 +14,7 @@ import PluginUtils;
 namespace {
     std::string getAccountEmail() {
         auto context = GW::GetCharContext();
-        if(!context) {
+        if (!context) {
             return "null@arena.net";
         }
 
@@ -104,7 +104,7 @@ void DailyCapPlugin::SignalTerminate() {
 }
 
 void DailyCapPlugin::Update(float) {
-    if(this->should_save && this->last_settings_folder) {
+    if (this->should_save && this->last_settings_folder) {
         this->should_save = false;
 
         this->SaveSettings(this->last_settings_folder);
@@ -126,14 +126,14 @@ void DailyCapPlugin::Draw(IDirect3DDevice9*) {
 
 void DailyCapPlugin::DrawSettings() {
     ToolboxUIPlugin::DrawSettings();
-    for(const auto& cap : tracked_caps) {
+    for (const auto& cap : tracked_caps) {
         cap->DrawSettingsInternal();
     }
 }
 
 void DailyCapPlugin::LoadSettings(const wchar_t* folder) {
     ToolboxUIPlugin::LoadSettings(folder);
-    for(auto& cap : tracked_caps) {
+    for (auto &cap: tracked_caps) {
         cap->LoadSettings(ini, this->Name());
     }
 
@@ -143,10 +143,14 @@ void DailyCapPlugin::LoadSettings(const wchar_t* folder) {
     auto champion = GW::PlayerMgr::GetTitleTrack(GW::Constants::TitleID::Champion);
     auto hero = GW::PlayerMgr::GetTitleTrack(GW::Constants::TitleID::Hero);
     auto codex = GW::PlayerMgr::GetTitleTrack(GW::Constants::TitleID::Codex);
-    gladiator_cap.LoadProgress(ini, account_email.c_str(), gladiator ? gladiator->current_points : 0);
-    champion_cap.LoadProgress(ini, account_email.c_str(), champion ? champion->current_points : 0);
-    hero_cap.LoadProgress(ini, account_email.c_str(), hero ? hero->current_points : 0);
-    codex_cap.LoadProgress(ini, account_email.c_str(), codex ? codex->current_points : 0);
+    gladiator_cap.LoadProgress(ini, account_email.c_str(),
+                               gladiator ? static_cast<int>(gladiator->current_points) : 0);
+    champion_cap.LoadProgress(ini, account_email.c_str(),
+                              champion ? static_cast<int>(champion->current_points) : 0);
+    hero_cap.LoadProgress(ini, account_email.c_str(), hero ?
+                                                      static_cast<int>(hero->current_points) : 0);
+    codex_cap.LoadProgress(ini, account_email.c_str(),
+                           codex ? static_cast<int>(codex->current_points) : 0);
 
     gladiator_box_cap.LoadProgress(ini, account_email.c_str(), 0);
     champion_box_cap.LoadProgress(ini, account_email.c_str(), 0);
@@ -159,7 +163,7 @@ void DailyCapPlugin::LoadSettings(const wchar_t* folder) {
 void DailyCapPlugin::SaveSettings(const wchar_t* folder) {
     std::string account_email = getAccountEmail();
 
-    for(const auto& cap : tracked_caps) {
+    for (const auto& cap : tracked_caps) {
         cap->SaveSettings(ini, this->Name());
         cap->SaveProgress(ini, account_email.c_str());
     }
@@ -170,7 +174,7 @@ void DailyCapPlugin::SaveSettings(const wchar_t* folder) {
 void DailyCapPlugin::OnTitleUpdated(GW::Constants::TitleID title_id, int new_value) {
     using enum GW::Constants::TitleID;
 
-    switch(title_id) {
+    switch (title_id) {
         case Gladiator:
             this->should_save |= this->tracked_caps[0]->SetValue(new_value);
             break;
@@ -195,24 +199,33 @@ void DailyCapPlugin::OnServerChatMessage(const wchar_t* message_enc) {
     constexpr std::wstring_view HERO_STRONGBOX_MESSAGE = L"\x8101\x0a4c\xdaa1\x8703\x5065\x010a\x8102\x752b\xdc27\xe8ad\x7d70\x0001\x0000";
     constexpr std::wstring_view ZKEY_MESSAGE = L"\x2afd\xb4fb\xd8c8\x1f00\x010a\x8101\x6b83\x0001\x010b\x8102\x36f4\x0001\x0000";
 
-    if(!message_enc) {
+    if (!message_enc) {
         return;
     }
-    if(this->expecting_zkey_message && 0 == wcscmp(message_enc, ZKEY_MESSAGE.data())) {
-        this->should_save |= this->zkey_cap.AddValue(1);
+
+    // NB. we always want to save to persist the config whenever one of these is updated
+    // as we can't infer their values from packets etc should the client crash before
+    // their progress is persisted.
+    if (this->expecting_zkey_message && 0 == wcscmp(message_enc, ZKEY_MESSAGE.data())) {
+        this->zkey_cap.AddValue(1);
+        this->should_save = true;
         this->expecting_zkey_message = false;
     }
     if (0 == wcscmp(message_enc, GLADIATOR_STRONGBOX_MESSAGE.data())) {
-        this->should_save |= this->gladiator_box_cap.AddValue(1);
+        this->gladiator_box_cap.AddValue(1);
+        this->should_save = true;
     }
     else if (0 == wcscmp(message_enc, CHAMPION_STRONGBOX_MESSAGE.data())) {
-        this->should_save |= this->champion_box_cap.AddValue(1);
+        this->champion_box_cap.AddValue(1);
+        this->should_save = true;
     }
     else if (0 == wcscmp(message_enc, HERO_STRONGBOX_MESSAGE.data())) {
-        this->should_save |= this->hero_box_cap.AddValue(1);
+        this->hero_box_cap.AddValue(1);
+        this->should_save = true;
     }
     else if (0 == wcscmp(message_enc, CODEX_STRONGBOX_MESSAGE.data())) {
-        this->should_save |= this->codex_box_cap.AddValue(1);
+        this->codex_box_cap.AddValue(1);
+        this->should_save = true;
     }
 }
 

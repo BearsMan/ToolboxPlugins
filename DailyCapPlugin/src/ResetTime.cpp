@@ -23,7 +23,7 @@ int getResetDay(uint64_t time_raw)
 {
     int64_t constexpr CONVERT_DAYS = 10000000ULL * 60 * 60 * 24;
 
-    int64_t result = time_raw - WEEKLY_BONUS_EPOCH;
+    auto result = static_cast<int64_t>(time_raw - WEEKLY_BONUS_EPOCH);
     result /= CONVERT_DAYS;
 
     return static_cast<int>(result);
@@ -39,7 +39,7 @@ int getResetWeek(uint64_t time_raw)
 {
     int64_t constexpr CONVERT_WEEKS = 10000000ULL * 60 * 60 * 24 * 7;
 
-    int64_t result = time_raw - WEEKLY_BONUS_EPOCH;
+    auto result = static_cast<int64_t>(time_raw - WEEKLY_BONUS_EPOCH);
     result /= CONVERT_WEEKS;
 
     return static_cast<int>(result);

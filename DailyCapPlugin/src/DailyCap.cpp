@@ -105,7 +105,7 @@ void DailyCap::SaveProgress(CSimpleIniA& ini, const char *account) {
     constexpr int BUF_SIZE = 21;
     char last_updated_buf[BUF_SIZE];
 
-    if(0 != _ui64toa_s(this->last_updated, last_updated_buf, BUF_SIZE, 10)) {
+    if (0 != _ui64toa_s(this->last_updated, last_updated_buf, BUF_SIZE, 10)) {
         std::cerr <<"Plugin Error (DailyCapPlugin): failed to serialize last_updated to string" << std::endl;
     }
 
