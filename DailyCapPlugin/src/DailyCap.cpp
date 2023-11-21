@@ -7,10 +7,15 @@
 #include <regex>
 
 namespace {
-    std::string removeSpaces(std::string&& original) {
+    std::string remove_spaces(std::string&& original) {
         const std::regex expr("\\s+");
         return std::regex_replace(original, expr, "");
     }
+
+    // Size argument for ImGui::ProgressBar, corresponding to:
+    // * x stretches to end
+    // * y auto sizes
+    const ImVec2 progress_bar_size_arg = ImVec2(-1, 0);
 }
 
 DailyCap::DailyCap(const char *name, int max, bool reset)
@@ -18,7 +23,7 @@ DailyCap::DailyCap(const char *name, int max, bool reset)
   ini_current_key(std::string(name).append("_current")),
   ini_day_start_key(std::string(name).append("_day_start")),
   ini_updated_key(std::string(name).append("_updated")),
-  ini_display_key(removeSpaces(std::string(name)).append("_display")),
+  ini_display_key(remove_spaces(std::string(name)).append("_display")),
   imgui_display_toggle_key(std::string(name).append("##dailycap_displaytoggle")),
   default_cap(max), current_value(0), day_start_value(0),
   last_updated(WEEKLY_BONUS_EPOCH), resets_on_day_rollover(reset)
@@ -122,8 +127,16 @@ bool DailyCap::DrawInternal() {
 
     if(this->display) {
         int progress;
+        int cap = this->GetCap();
         std::tie(progress, resetHappened) = this->GetProgress();
-        ImGui::Text("%s: %d/%d", this->name, progress, this->GetCap());
+
+        float percent = static_cast<float>(progress) / static_cast<float>(cap);
+
+        char progress_text[32];
+        sprintf_s(progress_text, "%d/%d", progress, cap);
+
+        ImGui::Text("%s:", this->name);
+        ImGui::ProgressBar(percent, progress_bar_size_arg, progress_text);
     }
 
     return resetHappened;

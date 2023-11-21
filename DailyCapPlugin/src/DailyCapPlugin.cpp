@@ -117,9 +117,13 @@ void DailyCapPlugin::Draw(IDirect3DDevice9*) {
     ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
 
     if (ImGui::Begin(Name(), GetVisiblePtr(), GetWinFlags())) {
-        for(const auto& cap : tracked_caps) {
+        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, (ImVec4)ImColor(120,143,182,255));
+
+        for (const auto& cap : tracked_caps) {
             this->should_save |= cap->DrawInternal();
         }
+
+        ImGui::PopStyleColor(1);
     }
     ImGui::End();
 }
