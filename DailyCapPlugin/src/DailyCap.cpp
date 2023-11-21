@@ -134,9 +134,14 @@ bool DailyCap::DrawInternal() {
 
         char progress_text[32];
         sprintf_s(progress_text, "%d/%d", progress, cap);
+        float window_width = ImGui::GetWindowWidth();
+        float text_width = ImGui::CalcTextSize(progress_text).x;
 
         ImGui::Text("%s:", this->name);
-        ImGui::ProgressBar(percent, progress_bar_size_arg, progress_text);
+        ImGui::ProgressBar(percent, progress_bar_size_arg, "");
+        ImGui::SameLine(0.0f);
+        ImGui::SetCursorPosX((window_width - text_width) * 0.5f);
+        ImGui::Text("%d/%d", progress, cap);
     }
 
     return resetHappened;
