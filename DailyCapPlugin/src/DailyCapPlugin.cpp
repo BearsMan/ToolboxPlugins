@@ -117,19 +117,24 @@ void DailyCapPlugin::Draw(IDirect3DDevice9*) {
     ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
 
     if (ImGui::Begin(Name(), GetVisiblePtr(), GetWinFlags())) {
-        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, (ImVec4)ImColor(120,143,182,255));
+        auto default_text_color = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, this->progress_bar_background_color);
+        ImGui::PushStyleColor(ImGuiCol_PlotHistogram, this->progress_bar_foreground_color);
+        ImGui::PushStyleColor(ImGuiCol_Text, this->progress_bar_text_color);
 
         for (const auto& cap : tracked_caps) {
+            ImGui::PushStyleColor(ImGuiCol_Text, default_text_color);
             this->should_save |= cap->DrawInternal();
         }
 
-        ImGui::PopStyleColor(1);
+        ImGui::PopStyleColor(3);
     }
     ImGui::End();
 }
 
 void DailyCapPlugin::DrawSettings() {
     ToolboxUIPlugin::DrawSettings();
+
     ImGui::Separator();
     ImGui::Text("Display:");
     ImGui::Indent();
@@ -152,13 +157,34 @@ void DailyCapPlugin::DrawSettings() {
         current_column++;
         cap->DrawSettingsInternal();
     }
+    ImGui::Unindent();
 
+    ImGui::Separator();
+    ImGui::Text("Colors:");
+    ImGui::Indent();
+    ImGui::ColorEdit3("Background", reinterpret_cast<float*>(&progress_bar_background_color), ImGuiColorEditFlags_NoAlpha);
+    ImGui::ColorEdit3("Foreground", reinterpret_cast<float*>(&progress_bar_foreground_color), ImGuiColorEditFlags_NoAlpha);
+    ImGui::ColorEdit3("Text", reinterpret_cast<float*>(&progress_bar_text_color), ImGuiColorEditFlags_NoAlpha);
     ImGui::Unindent();
 }
 
 void DailyCapPlugin::LoadSettings(const wchar_t* folder) {
     ToolboxUIPlugin::LoadSettings(folder);
-    for (auto &cap: tracked_caps) {
+
+    constexpr int DEFAULT_PROGRESS_BAR_BG_COLOR = -14071174; // ARGB 0xFF294A7A
+    constexpr int DEFAULT_PROGRESS_BAR_FG_COLOR = -9730641;  // ARGB 0xFF6B85AF
+    constexpr int DEFAULT_PROGRESS_BAR_TEXT_COLOR = -1;      // ARGB 0xFFFFFFFF
+
+    auto progress_bg_color = static_cast<uint32_t>(ini.GetLongValue(this->Name(), "progress_bar_background_color", DEFAULT_PROGRESS_BAR_BG_COLOR));
+    this->progress_bar_background_color = ImGui::ColorConvertU32ToFloat4(progress_bg_color);
+
+    auto progress_fg_color = static_cast<uint32_t>(ini.GetLongValue(this->Name(), "progress_bar_foreground_color", DEFAULT_PROGRESS_BAR_FG_COLOR));
+    this->progress_bar_foreground_color = ImGui::ColorConvertU32ToFloat4(progress_fg_color);
+
+    auto progress_text_color = static_cast<uint32_t>(ini.GetLongValue(this->Name(), "progress_bar_text_color", DEFAULT_PROGRESS_BAR_TEXT_COLOR));
+    this->progress_bar_text_color = ImGui::ColorConvertU32ToFloat4(progress_text_color);
+
+    for (auto& cap: tracked_caps) {
         cap->LoadSettings(ini, this->Name());
     }
 
@@ -187,6 +213,15 @@ void DailyCapPlugin::LoadSettings(const wchar_t* folder) {
 
 void DailyCapPlugin::SaveSettings(const wchar_t* folder) {
     std::string account_email = getAccountEmail();
+
+    auto progress_bg_color = static_cast<int>(ImGui::ColorConvertFloat4ToU32(this->progress_bar_background_color));
+    ini.SetLongValue(this->Name(), "progress_bar_background_color", progress_bg_color);
+
+    auto progress_fg_color = static_cast<int>(ImGui::ColorConvertFloat4ToU32(this->progress_bar_foreground_color));
+    ini.SetLongValue(this->Name(), "progress_bar_foreground_color", progress_fg_color);
+
+    auto progress_text_color = static_cast<int>(ImGui::ColorConvertFloat4ToU32(this->progress_bar_text_color));
+    ini.SetLongValue(this->Name(), "progress_bar_text_color", progress_text_color);
 
     for (const auto& cap : tracked_caps) {
         cap->SaveSettings(ini, this->Name());

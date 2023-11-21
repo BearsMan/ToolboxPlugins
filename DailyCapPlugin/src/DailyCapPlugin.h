@@ -40,6 +40,10 @@ private:
     DailyCap codex_box_cap;
     DailyCap zkey_cap;
 
+    ImVec4 progress_bar_background_color;
+    ImVec4 progress_bar_foreground_color;
+    ImVec4 progress_bar_text_color;
+
     bool expecting_zkey_message = false;
     bool should_save = false;
     const wchar_t* last_settings_folder = nullptr;

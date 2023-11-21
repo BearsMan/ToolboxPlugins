@@ -120,6 +120,8 @@ void DailyCap::SaveProgress(CSimpleIniA& ini, const char *account) {
 }
 
 // Draws the progress for this cap to the current open ImGui context.
+// NB. Expects ImGui styles to be pushed onto the stack, such that the default text color
+// is the most recent, and pops one style from the stack.
 //
 // Returns true iff the operation caused a daily reset to occur.
 bool DailyCap::DrawInternal() {
@@ -141,7 +143,11 @@ bool DailyCap::DrawInternal() {
         ImGui::ProgressBar(percent, progress_bar_size_arg, "");
         ImGui::SameLine(0.0f);
         ImGui::SetCursorPosX((window_width - text_width) * 0.5f);
+        ImGui::PopStyleColor();
         ImGui::Text("%d/%d", progress, cap);
+    }
+    else {
+        ImGui::PopStyleColor();
     }
 
     return resetHappened;
