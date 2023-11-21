@@ -31,7 +31,7 @@ DLLAPI ToolboxPlugin* ToolboxPluginInstance()
 DailyCapPlugin::DailyCapPlugin() :
     gladiator_cap(DailyCapWithBonusWeek("Gladiator", 200, 0)),
     champion_cap(DailyCapWithBonusWeek("Champion", 10, 1)),
-    hero_cap(DailyCapWithBonusWeek("Hero", 300, 3)),
+    hero_cap(DailyCapWithBonusWeek("Fame", 300, 3)),
     codex_cap(DailyCapWithBonusWeek("Codex", 100, 4)),
     gladiator_box_cap(DailyCap("Gladiator's Strongbox", 5, true)),
     champion_box_cap(DailyCap("Champion's Strongbox", 5, true)),
