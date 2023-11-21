@@ -26,9 +26,13 @@ DailyCap::DailyCap(const char *name, int max, bool reset)
 
 }
 
-void DailyCap::HandleDailyReset(uint64_t timestamp) {
+// Compares the provided timestamp to the timestamp of the last update.  If the last update was on a previous day,
+// resets the daily cap.
+//
+// Returns true iff a reset occurred.
+bool DailyCap::HandleDailyReset(uint64_t timestamp) {
     if (getResetDay(timestamp) <= getResetDay(this->last_updated)) {
-        return;
+        return false;
     }
 
     if (this->resets_on_day_rollover) {
@@ -40,33 +44,48 @@ void DailyCap::HandleDailyReset(uint64_t timestamp) {
     }
 
     this->last_updated = timestamp;
+    return true;
 }
 
-int DailyCap::GetProgress() {
+// Performs a daily reset, if applicable, then gets the progress towards today's daily cap.
+//
+// Returns a tuple of the progress, and whether a daily reset occurred
+std::tuple<int,bool> DailyCap::GetProgress() {
     uint64_t timestamp = getCurrentTime();
-    HandleDailyReset(timestamp);
+    bool resetHappened = HandleDailyReset(timestamp);
 
-    return this->current_value - this->day_start_value;
+    return std::make_tuple(this->current_value - this->day_start_value, resetHappened);
 }
 
+// Gets today's cap on progress.  The cap may vary due to weekly bonuses.
 int DailyCap::GetCap() {
     return this->default_cap;
 }
 
-void DailyCap::AddValue(int modifier) {
+// Performs a daily reset, if applicable, then adds `modifier` to the current progress.
+//
+// Returns true iff a daily reset occurred.
+bool DailyCap::AddValue(int modifier) {
     uint64_t timestamp = getCurrentTime();
-    HandleDailyReset(timestamp);
+    bool resetHappened = HandleDailyReset(timestamp);
 
     this->current_value += modifier;
     this->last_updated = timestamp;
+
+    return resetHappened;
 }
 
-void DailyCap::SetValue(int newValue) {
+// Performs a daily reset, if applicable, then sets the current progress to `newValue`.
+//
+// Returns true iff a daily reset occurred.
+bool DailyCap::SetValue(int newValue) {
     uint64_t timestamp = getCurrentTime();
-    HandleDailyReset(timestamp);
+    bool resetHappened = HandleDailyReset(timestamp);
 
     this->current_value = newValue;
     this->last_updated = timestamp;
+
+    return resetHappened;
 }
 
 void DailyCap::LoadProgress(const CSimpleIniA& ini, const char *account, int defaultStartValue) {
@@ -95,10 +114,19 @@ void DailyCap::SaveProgress(CSimpleIniA& ini, const char *account) {
     ini.SetValue(account, this->ini_updated_key.c_str(), last_updated_buf);
 }
 
-void DailyCap::DrawInternal() {
+// Draws the progress for this cap to the current open ImGui context.
+//
+// Returns true iff the operation caused a daily reset to occur.
+bool DailyCap::DrawInternal() {
+    bool resetHappened = false;
+
     if(this->display) {
-        ImGui::Text("%s: %d/%d", this->name, this->GetProgress(), this->GetCap());
+        int progress;
+        std::tie(progress, resetHappened) = this->GetProgress();
+        ImGui::Text("%s: %d/%d", this->name, progress, this->GetCap());
     }
+
+    return resetHappened;
 }
 
 void DailyCap::DrawSettingsInternal() {

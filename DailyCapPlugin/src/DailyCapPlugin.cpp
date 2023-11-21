@@ -103,6 +103,14 @@ void DailyCapPlugin::SignalTerminate() {
     ToolboxUIPlugin::SignalTerminate();
 }
 
+void DailyCapPlugin::Update(float) {
+    if(this->should_save && this->last_settings_folder) {
+        this->should_save = false;
+
+        this->SaveSettings(this->last_settings_folder);
+    }
+}
+
 void DailyCapPlugin::Draw(IDirect3DDevice9*) {
     const auto& io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
@@ -110,7 +118,7 @@ void DailyCapPlugin::Draw(IDirect3DDevice9*) {
 
     if (ImGui::Begin(Name(), GetVisiblePtr(), GetWinFlags())) {
         for(const auto& cap : tracked_caps) {
-            cap->DrawInternal();
+            this->should_save |= cap->DrawInternal();
         }
     }
     ImGui::End();
@@ -161,18 +169,19 @@ void DailyCapPlugin::SaveSettings(const wchar_t* folder) {
 
 void DailyCapPlugin::OnTitleUpdated(GW::Constants::TitleID title_id, int new_value) {
     using enum GW::Constants::TitleID;
+
     switch(title_id) {
         case Gladiator:
-            this->tracked_caps[0]->SetValue(new_value);
+            this->should_save |= this->tracked_caps[0]->SetValue(new_value);
             break;
         case Champion:
-            this->tracked_caps[1]->SetValue(new_value);
+            this->should_save |= this->tracked_caps[1]->SetValue(new_value);
             break;
         case Hero:
-            this->tracked_caps[2]->SetValue(new_value);
+            this->should_save |= this->tracked_caps[2]->SetValue(new_value);
             break;
         case Codex:
-            this->tracked_caps[3]->SetValue(new_value);
+            this->should_save |= this->tracked_caps[3]->SetValue(new_value);
             break;
         default:
             break;
@@ -190,20 +199,20 @@ void DailyCapPlugin::OnServerChatMessage(const wchar_t* message_enc) {
         return;
     }
     if(this->expecting_zkey_message && 0 == wcscmp(message_enc, ZKEY_MESSAGE.data())) {
-        this->zkey_cap.AddValue(1);
+        this->should_save |= this->zkey_cap.AddValue(1);
         this->expecting_zkey_message = false;
     }
     if (0 == wcscmp(message_enc, GLADIATOR_STRONGBOX_MESSAGE.data())) {
-        this->gladiator_box_cap.AddValue(1);
+        this->should_save |= this->gladiator_box_cap.AddValue(1);
     }
     else if (0 == wcscmp(message_enc, CHAMPION_STRONGBOX_MESSAGE.data())) {
-        this->champion_box_cap.AddValue(1);
+        this->should_save |= this->champion_box_cap.AddValue(1);
     }
     else if (0 == wcscmp(message_enc, HERO_STRONGBOX_MESSAGE.data())) {
-        this->hero_box_cap.AddValue(1);
+        this->should_save |= this->hero_box_cap.AddValue(1);
     }
     else if (0 == wcscmp(message_enc, CODEX_STRONGBOX_MESSAGE.data())) {
-        this->codex_box_cap.AddValue(1);
+        this->should_save |= this->codex_box_cap.AddValue(1);
     }
 }
 

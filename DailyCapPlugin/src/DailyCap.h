@@ -31,18 +31,18 @@ public:
     DailyCap(const char* name, int max, bool reset = false);
     virtual ~DailyCap() = default;
 
-    void DrawInternal();
+    bool DrawInternal();
     void DrawSettingsInternal();
     void LoadSettings(const CSimpleIniA& ini, const char* section);
     void SaveSettings(CSimpleIniA& ini, const char* section);
 
-    int GetProgress();
+    std::tuple<int,bool> GetProgress();
     virtual int GetCap();
 
     void LoadProgress(const CSimpleIniA& ini, const char* account, int defaultStartValue);
     void SaveProgress(CSimpleIniA& ini, const char* account);
 
-    void AddValue(int modifier);
-    void SetValue(int newValue);
-    void HandleDailyReset(uint64_t timestamp);
+    bool AddValue(int modifier);
+    bool SetValue(int newValue);
+    bool HandleDailyReset(uint64_t timestamp);
 };

@@ -20,6 +20,7 @@ public:
 
     void Initialize(ImGuiContext*, ImGuiAllocFns, HMODULE) override;
     void SignalTerminate() override;
+    void Update(float) override;
     void Draw(IDirect3DDevice9*) override;
     void DrawSettings() override;
     void LoadSettings(const wchar_t*) override;
@@ -41,6 +42,8 @@ private:
     DailyCap zkey_cap;
 
     bool expecting_zkey_message = false;
+    bool should_save = false;
+    const wchar_t* last_settings_folder = nullptr;
 
     const std::vector<DailyCap*> tracked_caps;
     GW::HookEntry hook_entry;
