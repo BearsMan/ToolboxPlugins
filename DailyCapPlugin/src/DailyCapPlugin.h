@@ -1,14 +1,13 @@
 #pragma once
 
+#include <cstdint>
+
+#include <GWCA/Constants/Constants.h>
 #include <GWCA/Utilities/Hook.h>
 #include <ToolboxUIPlugin.h>
 
 #include "DailyCap.h"
 #include "DailyCapWithBonusWeek.h"
-
-namespace GW::Constants {
-    enum class TitleID : uint32_t;
-}
 
 class DailyCapPlugin : public ToolboxUIPlugin {
 public:
