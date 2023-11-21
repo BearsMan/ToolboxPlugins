@@ -7,9 +7,34 @@
 #include <regex>
 
 namespace {
-    std::string remove_spaces(std::string&& original) {
-        const std::regex expr("\\s+");
-        return std::regex_replace(original, expr, "");
+    std::string sanitize_ini_key(std::string&& original) {
+        char* buffer = new char[original.length() * 2];
+        int idx = 0;
+
+        auto is_valid_char = [](char c) {
+            return (c >= '0' && c <= '9')
+              || (c >= 'A' && c <= 'Z')
+              || (c >= 'a' && c <= 'z')
+              || c == '_';
+        };
+
+        for(auto& c : original) {
+            if (!is_valid_char(c)) continue;
+
+            if (c >= 'A' && c <= 'Z' && idx > 0)
+            {
+                buffer[idx++] = '_';
+            }
+
+            buffer[idx++] = static_cast<char>(std::tolower(c));
+        }
+        buffer[idx] = '\0';
+
+        std::string result(buffer);
+
+        delete[] buffer;
+
+        return result;
     }
 
     // Size argument for ImGui::ProgressBar, corresponding to:
@@ -20,10 +45,10 @@ namespace {
 
 DailyCap::DailyCap(const char *name, int max, bool reset)
 : name(name),
-  ini_current_key(std::string(name).append("_current")),
-  ini_day_start_key(std::string(name).append("_day_start")),
-  ini_updated_key(std::string(name).append("_updated")),
-  ini_display_key(remove_spaces(std::string(name)).append("_display")),
+  ini_current_key(sanitize_ini_key(std::string(name)).append("_current")),
+  ini_day_start_key(sanitize_ini_key(std::string(name)).append("_day_start")),
+  ini_updated_key(sanitize_ini_key(std::string(name)).append("_updated")),
+  ini_display_key(sanitize_ini_key(std::string(name)).append("_display")),
   imgui_display_toggle_key(std::string(name).append("##dailycap_displaytoggle")),
   default_cap(max), current_value(0), day_start_value(0),
   last_updated(WEEKLY_BONUS_EPOCH), resets_on_day_rollover(reset)
