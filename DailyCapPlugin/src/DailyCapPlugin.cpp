@@ -130,9 +130,30 @@ void DailyCapPlugin::Draw(IDirect3DDevice9*) {
 
 void DailyCapPlugin::DrawSettings() {
     ToolboxUIPlugin::DrawSettings();
+    ImGui::Separator();
+    ImGui::Text("Display:");
+    ImGui::Indent();
+
+    constexpr float COLUMN_WIDTH = 125.0f;
+    const float available_width = ImGui::GetContentRegionAvail().x;
+    const int num_columns = static_cast<int>(std::floor(available_width / COLUMN_WIDTH));
+    float indent = ImGui::GetCurrentWindow()->DC.Indent.x;
+    int current_column = 0;
+
     for (const auto& cap : tracked_caps) {
+        if (current_column > 0) {
+            if (current_column < num_columns) {
+                ImGui::SameLine(static_cast<float>(current_column) * COLUMN_WIDTH + indent);
+            }
+            else {
+                current_column = 0;
+            }
+        }
+        current_column++;
         cap->DrawSettingsInternal();
     }
+
+    ImGui::Unindent();
 }
 
 void DailyCapPlugin::LoadSettings(const wchar_t* folder) {
